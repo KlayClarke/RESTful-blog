@@ -1,25 +1,24 @@
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, request
+from flask_wtf import FlaskForm
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
 from flask_ckeditor import CKEditor, CKEditorField
-
+from flask import Flask, render_template, redirect, url_for, request
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 ckeditor = CKEditor(app)
 Bootstrap(app)
 
-##CONNECT TO DB
+# connect to db
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-##CONFIGURE TABLE
+# configure table
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(250), unique=True, nullable=False)
@@ -30,7 +29,7 @@ class BlogPost(db.Model):
     img_url = db.Column(db.String(250), nullable=False)
 
 
-##WTForm
+# wtf form
 class CreatePostForm(FlaskForm):
     title = StringField("Blog Post Title", validators=[DataRequired()])
     subtitle = StringField("Subtitle", validators=[DataRequired()])
@@ -63,7 +62,30 @@ def new_post():
         db.session.add(new_blog_post)
         db.session.commit()
         return redirect(url_for('get_all_posts'))
-    return render_template('make-post.html', form=form)
+    return render_template('make-post.html', form=form, header='New Post')
+
+
+@app.route('/edit-post/<post_id>', methods=['GET', 'POST'])
+def edit_post(post_id):
+    requested_post = db.session.query(BlogPost).filter_by(id=post_id).first()
+    rp = requested_post
+    if request.method == 'GET':
+        form = CreatePostForm(title=rp.title, date=rp.date, subtitle=rp.subtitle,
+                              author=rp.author, img_url=rp.img_url, body=rp.body)
+        return render_template('make-post.html', form=form, header='Edit Post')
+    else:
+        rq = request.form.get
+        edited_blog_post = BlogPost(title=rq('title'), date=rp.date, subtitle=rq('subtitle'),
+                                    author=rq('author'), img_url=rq('img_url'), body=rq('body'))
+        ebp = edited_blog_post
+        rp.title = ebp.title
+        rp.date = ebp.date
+        rp.subtitle = ebp.subtitle
+        rp.author = ebp.author
+        rp.img_url = ebp.img_url
+        rp.body = ebp.body
+        db.session.commit()
+        return redirect(url_for('show_post', index=requested_post.id))
 
 
 @app.route("/about")
