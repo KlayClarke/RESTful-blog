@@ -1,4 +1,5 @@
-from flask import Flask, render_template, redirect, url_for
+from datetime import datetime
+from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
@@ -39,25 +40,29 @@ class CreatePostForm(FlaskForm):
     submit = SubmitField("Submit Post")
 
 
-posts = db.session.query(BlogPost).all()
-
-
 @app.route('/')
 def get_all_posts():
+    posts = db.session.query(BlogPost).all()
     return render_template("index.html", all_posts=posts)
 
 
 @app.route("/post/<int:index>")
 def show_post(index):
     requested_post = db.session.query(BlogPost).filter_by(id=index).first()
-    print(requested_post.id)
-    print(requested_post.title)
     return render_template("post.html", post=requested_post)
 
 
-@app.route('/new-post')
+@app.route('/new-post', methods=['GET', 'POST'])
 def new_post():
     form = CreatePostForm()
+    if request.method == 'POST':
+        rq = request.form.get
+        date = datetime.now().strftime('%B %d, %Y')
+        new_blog_post = BlogPost(title=rq('title'), date=date, subtitle=rq('subtitle'),
+                                 author=rq('author'), img_url=rq('img_url'), body=rq('body'))
+        db.session.add(new_blog_post)
+        db.session.commit()
+        return redirect(url_for('get_all_posts'))
     return render_template('make-post.html', form=form)
 
 
