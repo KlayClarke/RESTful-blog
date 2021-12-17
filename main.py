@@ -35,7 +35,7 @@ class CreatePostForm(FlaskForm):
     subtitle = StringField("Subtitle", validators=[DataRequired()])
     author = StringField("Your Name", validators=[DataRequired()])
     img_url = StringField("Blog Image URL", validators=[DataRequired(), URL()])
-    body = StringField("Blog Content", validators=[DataRequired()])
+    body = CKEditorField("Blog Content", validators=[DataRequired()])
     submit = SubmitField("Submit Post")
 
 
@@ -57,7 +57,8 @@ def show_post(index):
 
 @app.route('/new-post')
 def new_post():
-    return render_template('make-post.html')
+    form = CreatePostForm()
+    return render_template('make-post.html', form=form)
 
 
 @app.route("/about")
