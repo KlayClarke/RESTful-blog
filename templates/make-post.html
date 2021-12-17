@@ -1,4 +1,5 @@
 {% extends 'bootstrap/base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block content %}
 {% include "header.html" %}
@@ -15,6 +16,7 @@
         </div>
       </div>
     </div>
+              {{ ckeditor.load() }}
   </header>
 
   <div class="container">
@@ -22,6 +24,21 @@
       <div class="col-lg-8 col-md-10 mx-auto">
         
           <!-- This is where the form will go -->
+        <form method="post">
+          {{ form.hidden_tag() }}
+          {{ wtf.form_errors(form, hiddens='only') }}
+          {{ wtf.form_field(form.title) }}
+          {{ wtf.form_field(form.subtitle) }}
+          {{ wtf.form_field(form.author) }}
+          {{ wtf.form_field(form.img_url) }}
+          {{ wtf.form_field(form.body) }}
+
+<!--          {{ form.title() }}-->
+<!--          {{ form.body() }}-->
+<!--          {{ form.submit() }}-->
+        </form>
+        {{ ckeditor.load() }}
+        {{ ckeditor.config(name='body') }}
 
       </div>
     </div>
