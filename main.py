@@ -88,6 +88,14 @@ def edit_post(post_id):
         return redirect(url_for('show_post', index=requested_post.id))
 
 
+@app.route('/delete/<post_id>', methods=['GET', 'DELETE'])
+def delete_post(post_id):
+    selected_post = db.session.query(BlogPost).filter_by(id=post_id).first()
+    db.session.delete(selected_post)
+    db.session.commit()
+    return redirect(url_for('get_all_posts'))
+
+
 @app.route("/about")
 def about():
     return render_template("about.html")
